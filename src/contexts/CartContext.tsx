@@ -25,8 +25,10 @@ interface UpdateCartProps {
 interface CartContextProps {
   cart: Snack[]
   addSnackIntoCart: (snack: SnackData) => void
-  // removeSnackFromCart: ({id, snack}: RemoveSnackFromCartProps) => void
-  // updateCart: ({id, snack, newQuantity}: UpdateCartProps) => void
+  removeSnackFromCart: (snack: Snack) => void
+  snackCartIncrement: (snack: Snack) => void
+  snackCartDecrement: (snack: Snack) => void
+  confirmOrder: () => void
 }
 
 interface CartProviderProps {
@@ -72,6 +74,57 @@ export function CartProvider({ children }: CartProviderProps) {
     setCart(newCart)
   }
 
-  return <CartContext.Provider value={{ cart, addSnackIntoCart }}>{children}</CartContext.Provider>
+  function removeSnackFromCart(snack: Snack) {
+    const newCart = cart.filter((item) => !(item.id === snack.id && item.snack === snack.snack))
 
+    setCart(newCart)
+  }
+
+  function updateSnackQuantity(snack: Snack, newQuantity: number) {
+    if (newQuantity <= 0) return
+    const snackExistentInCart = cart.find((item) => item.id === snack.id && item.snack === snack.snack)
+
+    if (!snackExistentInCart) return
+
+    const newCart = cart.map((item) => {
+      if (item.id === snackExistentInCart.id && item.snack === snackExistentInCart.snack) {
+        return {
+          ...item,
+          quantity: newQuantity,
+          subtotal: item.price * newQuantity,
+        }
+      }
+
+      return item
+    })
+
+    setCart(newCart)
+  }
+
+  function snackCartIncrement(snack: Snack) {
+    updateSnackQuantity(snack, snack.quantity + 1)
+  }
+
+  function snackCartDecrement(snack: Snack) {
+    updateSnackQuantity(snack, snack.quantity - 1)
+  }
+
+  function confirmOrder() {
+    return
+  }
+
+  return (
+    <CartContext.Provider
+      value={{
+        cart,
+        addSnackIntoCart,
+        removeSnackFromCart,
+        snackCartIncrement,
+        snackCartDecrement,
+        confirmOrder,
+      }}
+    >
+      {children}
+    </CartContext.Provider>
+  )
 }
